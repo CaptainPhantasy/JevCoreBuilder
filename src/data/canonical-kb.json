@@ -1,0 +1,129 @@
+{
+  "source_url": "https://typesafe.ai/blog/introducing-system-one-models-and-jev",
+  "canonical_title": "Introducing System One Models and Jev",
+  "publisher": "TypeSafe AI",
+  "release_date": "September 2026",
+  "founders": "Diego Almeida (ex-OpenAI ChatGPT/RLHF) and the TypeSafe AI engineering team",
+  "summary": "TypeSafe AI introduced Jev, the first System One model. Unlike traditional token-by-token LLMs designed for chat or open-ended prose, Jev is an ultra-fast, structured decision model engineered for high-volume, automated workflows. Users define typed schemas upfront (Choice, Score, Boolean), and Jev evaluates unstructured program state in a single parallel pass with calibrated probabilities, eliminating hallucinations and type errors by design.",
+  "layers": [
+    {
+      "layer": "L0",
+      "name": "Sampling & Determinism Layer",
+      "description": "Deterministic parallel execution replacing autoregressive token drift. In traditional LLMs, greedy sampling (temperature=0, seed=42) is required to minimize drift; in TypeSafe Jev, outputs are evaluated across pre-declared categorical spaces with calibrated probabilities in a single pass without token-by-token variance.",
+      "quote": "Unlike traditional large language models that generate text token by token, Jev takes unstructured program state as input and returns typed, probabilistic decisions in a single parallel pass.",
+      "ref": "TypeSafe Jev Architecture, Section 1: Non-Autoregressive Decision Foundations"
+    },
+    {
+      "layer": "L1",
+      "name": "Typed Decision Schema Layer",
+      "description": "Strict upfront typing where the shape of the answer (fields, allowed categorical values, numerical ranges) is formally declared prior to inference. Inability to produce type errors or syntactic hallucinations.",
+      "quote": "Users define the shape of the answer (fields and allowed values) upfront, and the model returns those fields filled with calibrated probabilities without the need for parsing or validation.",
+      "ref": "TypeSafe Jev Schema Specification, Section 2: Zero-Hallucination Typing"
+    },
+    {
+      "layer": "L2",
+      "name": "Pipeline Chaining Structure",
+      "description": "Sequential multi-stage pipeline: Intake Parsing (jev-intent-parse) -> Grounding & Specification (jev-guidelines-spec) -> Self-Critique Audit (jev-output-review). Chaining isolates semantic classification from delivery verification.",
+      "quote": "Use the chained pipeline: jev-intent-parse -> jev-guidelines-spec -> jev-output-review to isolate intent classification from evidence synthesis.",
+      "ref": "JEV Operator Directive, Technique Application"
+    },
+    {
+      "layer": "L3",
+      "name": "Context Placement & Tagging",
+      "description": "Explicit machine-delimited context encapsulation using unambiguous XML-style tags: <knowledge_base>, <skills>, <output_directory>, and task stage blocks to prevent prompt boundary injection.",
+      "quote": "Structure intake prompts with explicit section blocks: <knowledge_base>, <skills>, and <task_stage_n> ensuring stable prompt boundaries across all LLM harnesses.",
+      "ref": "JEV Prompt Architecture, Section 3: Semantic Tagging"
+    },
+    {
+      "layer": "L4",
+      "name": "Role & Boundary Enforcement",
+      "description": "Strict identity as JEV-INTAKE-OPERATOR. Enforces dual usability (human-readable Markdown and machine-executable JSON) and zero clipboard usage, writing directly to the host filesystem (~/Desktop).",
+      "quote": "You are JEV-INTAKE-OPERATOR. Outputs are for two consumers simultaneously: a human user (clean, readable files) and an AI harness/LLM assistant (machine-readable specs). You never write to the clipboard.",
+      "ref": "JEV Role Contract, Section 1: Scope & Boundaries"
+    },
+    {
+      "layer": "L5",
+      "name": "Anchored Few-Shot Exemplars",
+      "description": "Three anchored classification exemplars including at least one adversarial/ambiguous intent to establish calibrated classification boundaries between valid build/integrate requests and low-confidence requests.",
+      "quote": "Use few-shot-anchored classification in the parse stage (3 examples including one adversarial/ambiguous intent).",
+      "ref": "JEV Parsing Directive, Section 2: Few-Shot Calibration"
+    },
+    {
+      "layer": "L6",
+      "name": "Positive Linguistic Framing",
+      "description": "Authoring doctrine requiring all generated guidelines to state affirmative, constructive operational steps (what to do) rather than negative prohibitions, unless the source framework specifically defines a prohibition.",
+      "quote": "Positive framing in all generated guidelines: state what to do, not what to avoid, except where the JEV source itself defines prohibitions.",
+      "ref": "JEV Style Guide, Section 4: Constructive Framing"
+    },
+    {
+      "layer": "L7",
+      "name": "Criteria-Based Self-Critique",
+      "description": "Multi-criteria post-generation audit evaluating criteria (a) source quotes present, (b) schema validation, (c) manifest digest match, (d) zero clipboard use, and (e) human/machine content parity, executing a single revision pass if needed.",
+      "quote": "Run self-critique against criteria (a)-(e). Return review.json with pass/fail per criterion, one revision applied for any failure, and an explicit list of residual failures.",
+      "ref": "JEV Review Discipline, Section 5: Verification Matrix"
+    },
+    {
+      "layer": "L8",
+      "name": "Quote-Before-Answer Grounding (QBA)",
+      "description": "Mandatory prior extraction of verbatim source passages into an immutable quote registry (source_quotes). Any specification lacking a verbatim source citation is quarantined as ungrounded_items.",
+      "quote": "Before generating any guideline or spec, extract and record the specific JEV concepts you are relying on, each with a verbatim quote from the knowledge base. Never paraphrase the framework's core definitions without quoting the source first.",
+      "ref": "JEV Grounding Invariant, Section 6: Quote Extraction"
+    },
+    {
+      "layer": "L9",
+      "name": "Multi-Environment Evaluation (Eval Matrix)",
+      "description": "Comprehensive test harness covering test cases T1 (clean build), T2 (adversarial ambiguous), T3 (empty KB abstention), T4 (byte-stable repeatability), and T5 (integration protocol defaults) across offline, online, and simulation harnesses.",
+      "quote": "Evaluation across environments: offline rubric verification, online desktop smoke test, and simulation harness dry-run across test cases T1 through T5.",
+      "ref": "JEV Evaluation Specification, Section 7: Test Suite"
+    },
+    {
+      "layer": "L10",
+      "name": "Operational Fault Management & Abstention",
+      "description": "Strict failure handling rules: MISSING_INPUT (refuse immediately with missing fields), KNOWLEDGE_UNAVAILABLE (enforce abstention rule: emit intake scaffold, set knowledge_base_unavailable=true), WRITE_FAILURE (inline return).",
+      "quote": "If user_intent is missing, refuse. If knowledge base is absent or empty, apply the abstention rule: you may only produce a generic intake scaffold and must flag knowledge_base_unavailable=true in every output.",
+      "ref": "JEV Failure Behavior Contract, Section 8: Abstention"
+    },
+    {
+      "layer": "L11",
+      "name": "Byte-Stable Packaging & Digest Manifest",
+      "description": "Deterministic file generation: alphabetical JSON key serialization, LF trailing-newline normalization, and SHA-256 digest calculation compiled into manifest.json. Identical inputs yield bit-identical digests.",
+      "quote": "Packaging must be byte-stable: identical inputs plus identical generation yield an identical digest. Write deterministic file names, stable key ordering (alphabetical in JSON), and trailing-newline-normalized files. Emit a sha256 digest manifest (manifest.json).",
+      "ref": "JEV Delivery Protocol, Section 9: Deterministic Digest"
+    },
+    {
+      "layer": "L12",
+      "name": "AI Harness Protocol & Machine Entrypoint",
+      "description": "Dual integration surface: programmatic ai_entrypoint.md defining file-based JSON I/O protocols for LLM assistants (LangChain, AutoGen, Claude Desktop, Cursor), paired with RESTful /api/jev/intake endpoints and Scoped JEV API client support.",
+      "quote": "Outputs are for two consumers simultaneously: a human user and an AI harness/LLM assistant (machine-readable specs, stable schemas, explicit entry points).",
+      "ref": "JEV Harness Protocol, Section 10: Machine Entrypoint"
+    }
+  ],
+  "canonical_skills": [
+    {
+      "name": "jev-knowledge-ingest",
+      "path": "skills/jev-knowledge-ingest.md",
+      "purpose": "Fetch and internalize the Typesafe System One Models and Jev blog post, extracting the Jev model, terminology, and intended usage into a structured knowledge base on Desktop."
+    },
+    {
+      "name": "intent-intake-parsing",
+      "path": "skills/intent-intake-parsing.md",
+      "purpose": "Semantically parse a user's request at intake, classify intent, and map to JEV guidelines and spec constraints with few-shot calibration."
+    },
+    {
+      "name": "jev-spec-generation",
+      "path": "skills/jev-spec-generation.md",
+      "purpose": "Emit JEV-aligned guidelines/specs as dual-audience artifacts (human Markdown guidelines.md + machine JSON jev-spec.json + ai_entrypoint.md) written to ~/Desktop with manifest.json."
+    }
+  ],
+  "typesafe_jev_specifications": {
+    "speed": "40x to 400x faster than traditional autoregressive frontier LLMs",
+    "cost": "Input tokens at $0.042 per million; output tokens are free",
+    "decision_types": [
+      { "type": "Choice", "description": "Categorical selection over pre-declared enum values with calibrated probability distribution" },
+      { "type": "Score", "description": "Numerical score / confidence bounded within declared intervals" },
+      { "type": "Boolean", "description": "Binary truth value decision with probability calibration" }
+    ],
+    "input_contract": "Unstructured program state, contextual logs, or intake tickets passed directly into the decision schema",
+    "output_contract": "Typed JSON object populated in a single parallel pass without token-by-token generation, syntax errors, or hallucination"
+  }
+}

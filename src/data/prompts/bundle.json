@@ -1,0 +1,114 @@
+{
+  "name": "jev-intake-package",
+  "version": "1.0.0",
+  "intended_use": "Agent-operated package that ingests the Typesafe 'System One models / JEV' blog post as its knowledge base, semantically parses a human user's intent at intake, generates JEV-aligned guidelines and specs, and writes all deliverables to the user's ~/Desktop as files (never clipboard).",
+  "few_shot_examples": [
+    {
+      "name": "clean_build_intent",
+      "input": "USER_INTENT: 'Set up JEV guidelines for our support team so intake tickets get triaged per the framework.'",
+      "output": {
+        "goal_type": "build",
+        "entities": ["support team", "intake tickets", "triage"],
+        "ambiguities": [],
+        "required_artifacts": ["guidelines.md", "jev-spec.json", "ai_entrypoint.md", "manifest.json"],
+        "confidence": 0.9
+      }
+    },
+    {
+      "name": "adversarial_ambiguous_intent",
+      "input": "USER_INTENT: 'Make it JEV-ish and fast, you know what I mean.'",
+      "output": {
+        "goal_type": "other",
+        "entities": [],
+        "ambiguities": [
+          "'JEV-ish' undefined relative to knowledge base",
+          "'fast' has no measurable target",
+          "'you know what I mean' supplies no specifiable goal"
+        ],
+        "required_artifacts": ["clarification_request.md", "clarification_request.json", "manifest.json"],
+        "confidence": 0.2
+      }
+    },
+    {
+      "name": "knowledge_base_unavailable",
+      "input": "USER_INTENT: 'Generate JEV spec for onboarding.' KB: (empty)",
+      "output": {
+        "status": "partial",
+        "knowledge_base_unavailable": true,
+        "artifacts": ["intake_scaffold.md", "intake_scaffold.json", "manifest.json"],
+        "missing": ["JEV blog content or skill contents"],
+        "confidence": 0.4
+      }
+    },
+    {
+      "name": "integration_intent",
+      "input": "USER_INTENT: 'Wire the JEV intake tool into our agent harness so the agent calls it directly.'",
+      "output": {
+        "goal_type": "integrate",
+        "entities": ["agent harness", "JEV intake tool"],
+        "ambiguities": ["harness protocol unspecified (default: file-based JSON I/O via ai_entrypoint.md)"],
+        "required_artifacts": ["guidelines.md", "jev-spec.json", "ai_entrypoint.md", "manifest.json"],
+        "confidence": 0.85
+      }
+    }
+  ],
+  "test_cases": [
+    {
+      "id": "T1",
+      "title": "Clean build intent with full KB",
+      "input": "Set up JEV guidelines for our data processing engine so every ingested batch is justified by evidence before committing.",
+      "expect": "Full artifact set on Desktop; manifest digests valid; all claims grounded; review all-pass."
+    },
+    {
+      "id": "T2",
+      "title": "Adversarial ambiguous intent",
+      "input": "Make it JEV-ish and fast, you know what I mean.",
+      "expect": "clarification_request file written; no fabricated specs; confidence < 0.5 recorded."
+    },
+    {
+      "id": "T3",
+      "title": "Empty knowledge base",
+      "input": "Generate JEV spec for customer service triage.",
+      "expect": "knowledge_base_unavailable=true; only intake scaffold; missing items listed."
+    },
+    {
+      "id": "T4",
+      "title": "Byte-stable repeatability at temperature 0, seed 42",
+      "input": "Configure JEV specification for document processing pipeline.",
+      "expect": "Identical manifest digests (byte-stable) across repeated runs."
+    },
+    {
+      "id": "T5",
+      "title": "Integration intent with unspecified harness protocol",
+      "input": "Wire the JEV intake tool into our agent harness so the agent calls it directly.",
+      "expect": "ai_entrypoint.md defaults to file-based JSON I/O; protocol listed in assumptions_to_verify."
+    }
+  ],
+  "self_critique_criteria": [
+    {
+      "id": "a",
+      "criterion": "Every framework claim has a source quote",
+      "description": "Every JEV guideline and spec must trace to a verbatim quote in source_quotes from the canonical knowledge base."
+    },
+    {
+      "id": "b",
+      "criterion": "Every JSON artifact validates against its declared schema",
+      "description": "JSON files have alphabetical keys, required fields present, valid types, and normalized newlines."
+    },
+    {
+      "id": "c",
+      "criterion": "Digest manifest matches written files",
+      "description": "manifest.json accurately records the sha256 hash and byte length of every generated file."
+    },
+    {
+      "id": "d",
+      "criterion": "No clipboard usage",
+      "description": "Files are written strictly to the local filesystem (~/Desktop or output_directory); no clipboard interactions occur."
+    },
+    {
+      "id": "e",
+      "criterion": "Human and machine versions agree in content",
+      "description": "Markdown guidelines and JSON specifications have 1:1 parity in guideline IDs, statements, and invariants."
+    }
+  ]
+}

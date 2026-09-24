@@ -1,0 +1,6 @@
+{
+  "name": "JEV Core Builder",
+  "description": "Typesafe System One & JEV Intake Operator: Semantically parses user intent, grounds in canonical JEV knowledge base, and deterministically generates byte-stable dual-audience guidelines and machine specifications to Desktop.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
