@@ -8,6 +8,14 @@
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
+import {
+  resolveDomainDefinition,
+  generateDomainLayerFiles,
+  DomainLayerDefinition
+} from './jev-domain-generator.ts';
+
+export { resolveDomainDefinition, generateDomainLayerFiles };
+export type { DomainLayerDefinition };
 
 export interface CanonicalKBConcept {
   id: string;
@@ -110,6 +118,14 @@ export interface JevPipelineResult {
   manifest_digest?: string;
   review?: ReviewOutput;
   error?: string;
+  domain_summary?: {
+    domain_id: string;
+    domain_name: string;
+    input_fields: string[];
+    decision_choices: string[];
+    rule_count: number;
+    test_case_count: number;
+  };
 }
 
 // Canonical default knowledge base
@@ -823,27 +839,37 @@ ${intentParse.ambiguities.map(a => `- **Ambiguity**: ${a}`).join('\n')}
     };
   }
 
-  // Stage 2: Spec Generation
+  // Stage 2: Spec & Domain Drop-In Package Generation
   const effectiveTimestamp = options.seed !== undefined ? '2026-09-24T00:00:00.000Z' : new Date().toISOString();
-  const { spec, guidelinesMd, aiEntrypointMd } = generateJevSpec(
-    intentParse,
-    user_intent,
-    DEFAULT_CANONICAL_KB,
-    effectiveTimestamp
-  );
+  
+  // Synthesize custom domain architecture and drop-in code artifacts
+  const domainDef = resolveDomainDefinition(user_intent);
+  const domainFiles = generateDomainLayerFiles(domainDef, user_intent, effectiveTimestamp);
 
   const intentParseJson = stringifyAlphabetical(intentParse);
-  const specJson = stringifyAlphabetical(spec);
 
   const preliminaryFiles = [
-    { name: 'intent_parse.json', content: intentParseJson, bytes: Buffer.byteLength(intentParseJson), sha256: computeSha256(intentParseJson) },
-    { name: 'guidelines.md', content: guidelinesMd, bytes: Buffer.byteLength(guidelinesMd), sha256: computeSha256(guidelinesMd) },
-    { name: 'jev-spec.json', content: specJson, bytes: Buffer.byteLength(specJson), sha256: computeSha256(specJson) },
-    { name: 'ai_entrypoint.md', content: aiEntrypointMd, bytes: Buffer.byteLength(aiEntrypointMd), sha256: computeSha256(aiEntrypointMd) }
+    { name: 'schema.ts', content: domainFiles.schemaTs, bytes: Buffer.byteLength(domainFiles.schemaTs), sha256: computeSha256(domainFiles.schemaTs) },
+    { name: 'schema.py', content: domainFiles.schemaPy, bytes: Buffer.byteLength(domainFiles.schemaPy), sha256: computeSha256(domainFiles.schemaPy) },
+    { name: 'evaluator.ts', content: domainFiles.evaluatorTs, bytes: Buffer.byteLength(domainFiles.evaluatorTs), sha256: computeSha256(domainFiles.evaluatorTs) },
+    { name: 'evaluator.py', content: domainFiles.evaluatorPy, bytes: Buffer.byteLength(domainFiles.evaluatorPy), sha256: computeSha256(domainFiles.evaluatorPy) },
+    { name: 'rules.json', content: domainFiles.rulesJson, bytes: Buffer.byteLength(domainFiles.rulesJson), sha256: computeSha256(domainFiles.rulesJson) },
+    { name: 'rules.md', content: domainFiles.rulesMd, bytes: Buffer.byteLength(domainFiles.rulesMd), sha256: computeSha256(domainFiles.rulesMd) },
+    { name: 'rulebook.json', content: domainFiles.rulebookJson, bytes: Buffer.byteLength(domainFiles.rulebookJson), sha256: computeSha256(domainFiles.rulebookJson) },
+    { name: 'rulebook.md', content: domainFiles.rulebookMd, bytes: Buffer.byteLength(domainFiles.rulebookMd), sha256: computeSha256(domainFiles.rulebookMd) },
+    { name: 'test-cases.json', content: domainFiles.testCasesJson, bytes: Buffer.byteLength(domainFiles.testCasesJson), sha256: computeSha256(domainFiles.testCasesJson) },
+    { name: 'test-evaluator.ts', content: domainFiles.testEvaluatorTs, bytes: Buffer.byteLength(domainFiles.testEvaluatorTs), sha256: computeSha256(domainFiles.testEvaluatorTs) },
+    { name: 'ai_entrypoint.md', content: domainFiles.aiEntrypointMd, bytes: Buffer.byteLength(domainFiles.aiEntrypointMd), sha256: computeSha256(domainFiles.aiEntrypointMd) },
+    { name: 'guidelines.md', content: domainFiles.guidelinesMd, bytes: Buffer.byteLength(domainFiles.guidelinesMd), sha256: computeSha256(domainFiles.guidelinesMd) },
+    { name: 'jev-spec.json', content: domainFiles.jevSpecJson, bytes: Buffer.byteLength(domainFiles.jevSpecJson), sha256: computeSha256(domainFiles.jevSpecJson) },
+    { name: 'intent_parse.json', content: intentParseJson, bytes: Buffer.byteLength(intentParseJson), sha256: computeSha256(intentParseJson) }
   ];
 
+  // Parse jev-spec for review validation
+  const specObj = JSON.parse(domainFiles.jevSpecJson) as JevSpecOutput;
+
   // Stage 3: Output Review
-  const review = reviewDeliverables(preliminaryFiles, spec, false);
+  const review = reviewDeliverables(preliminaryFiles, specObj, false);
   const reviewJson = stringifyAlphabetical(review);
   const reviewMd = normalizeText(`# JEV Review & Self-Critique Audit
 
@@ -889,6 +915,14 @@ ${review.assumptions_to_verify.map(a => `- ${a}`).join('\n')}
     manifest: manifestObj,
     manifest_digest: manifestFile.sha256,
     review,
+    domain_summary: {
+      domain_id: domainDef.domain_id,
+      domain_name: domainDef.domain_name,
+      input_fields: domainDef.input_fields.map(f => f.name),
+      decision_choices: domainDef.decision_choices,
+      rule_count: domainDef.rules.length,
+      test_case_count: domainDef.test_cases.length
+    },
     error: writeResult.error
   };
 }
